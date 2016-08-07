@@ -1,0 +1,6 @@
+name: RedstoneClockDetector
+main: redempt.rcd.Main
+version: 1.0
+commands:
+   rcd:
+      description: Redstone clock detector base command
