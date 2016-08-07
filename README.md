@@ -1,3 +1,3 @@
 # Redstone-Clock-Detector
 
-A plugin to detect redstone clocks.
+A minecraft plugin to automatically detect redstone clocks.
