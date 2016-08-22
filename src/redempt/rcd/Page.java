@@ -20,6 +20,7 @@ public class Page {
 			return false;
 		}
 		entries[pos] = entry;
+		pos++;
 		return true;
 	}
 	

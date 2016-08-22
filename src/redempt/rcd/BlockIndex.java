@@ -1,51 +1,37 @@
 package redempt.rcd;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import org.bukkit.Location;
 
 public class BlockIndex {
 
-	private List<Location> locations = new ArrayList<>();
+	private Map<Location, Integer> locations = new HashMap<>();
 
 	public BlockIndex() {
 
 	}
-
-	public boolean add(Location loc) {
-		for (Location location : locations) {
-			if (location.distance(loc) < 10) {
-				return false;
-			}
-		}
-		locations.add(loc);
-		return true;
+	
+	public void clear() {
+		locations.clear();
 	}
 	
-	public List<Location> getLocations() {
-		return locations;
-	}
-
-	public boolean removeNear(Location loc) {
-		for (Location location : locations) {
+	public void add(Location loc) {
+		for (Location location : locations.keySet()) {
 			if (location.distance(loc) < 10) {
-				locations.remove(location);
-				return true;
+				locations.put(location, locations.get(location) + 1);
+				return;
 			}
 		}
-		return false;
+		locations.put(loc, 1);
 	}
-
-	public boolean removeExact(Location loc) {
-		if (locations.contains(loc)) {
-			locations.remove(loc);
-			return true;
-		}
-		return false;
+	
+	public Map<Location, Integer> getLocations() {
+		return locations;
 	}
 	
 	public boolean containsNear(Location loc) {
-		for (Location location : locations) {
+		for (Location location : locations.keySet()) {
 			if (location.distance(loc) < 10) {
 				return true;
 			}
@@ -54,7 +40,7 @@ public class BlockIndex {
 	}
 	
 	public boolean containsExact(Location loc) {
-		return locations.contains(loc);
+		return locations.keySet().contains(loc);
 	}
 
 }
