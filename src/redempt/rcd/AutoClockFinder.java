@@ -1,65 +1,112 @@
 package redempt.rcd;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.block.BlockState;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockRedstoneEvent;
+import org.bukkit.event.inventory.InventoryMoveItemEvent;
+import redempt.rcd.scheduler.Task;
 
 public class AutoClockFinder implements Listener {
 	
 	BlockTimeIndex index = new BlockTimeIndex();
+	List<Location> oldClocks = new ArrayList<>();
+	List<Page> pages = new ArrayList<>();
+	List<Location> clockList = new ArrayList<>();
+	
+	public Task task;
 	
 	public AutoClockFinder() {
 		Bukkit.getPluginManager().registerEvents(this, Main.plugin);
-		Bukkit.getScheduler().scheduleSyncRepeatingTask(Main.plugin, new Runnable() {
+		task = new Task(new Runnable() {
 			
 			@Override
 			public void run() {
-				Map<Long, List<Location>> locations = index.getLocations();
-				for (long key : locations.keySet()) {
-					for (Location loc : locations.get(key)) {
-						long val = key + 1;
-						long interval = 0;
-						for (; val < locations.size(); val++) {
-							if (locations.get(val) != null && contained(locations.get(val), loc)) {
-								interval = val - key;
-								if (interval != 0) {
-									break;
-								}
-							}
-						}
-						if (interval != 0) {
-							System.out.println(interval);
-							val = key;
-							int count = 1;
-							while (val - key <= interval * 4) {
-								val += interval;
-								if (locations.get(val) != null && locations.get(val).contains(loc)) {
-									count++;
-								}
-							}
-							if (count > 3) {
-								Bukkit.broadcastMessage("Clock found at " + loc.getBlockX() + ", " + loc.getBlockY() + ", " + loc.getBlockZ());
-							}
+				pages.clear();
+				clockList.clear();
+				List<Location> clocks = new ArrayList<>();
+				Map<Location, short[]> locations = index.getLocations();
+				for (Location location : locations.keySet()) {
+					short[] times = locations.get(location);
+					if (times[2] >= 6) {
+						if (!containsNear(clocks, location)) {
+							clocks.add(location);
 						}
 					}
 				}
+				int pos = 0;
+				Page page = new Page();
+				pages.clear();
+				for (Location clock : clocks) {
+					if (oldClocks.contains(clock)) {
+						for (Region region : Main.regions) {
+							if (region.contains(clock)) {
+								continue;
+							}
+						}
+						clockList.add(clock);
+						if (!page.add(ChatColor.YELLOW + "" + pos + ": " + ChatColor.GREEN + clock.getBlockX() + ", " + clock.getBlockY() + ", " + clock.getBlockZ() + " in " + clock.getWorld().getName())) {
+							pages.add(page);
+							page = new Page();
+						}
+						pos++;
+						
+					}
+				}
+				if (!page.isEmpty()) {
+					pages.add(page);
+				}
+				if (pos != 0) {
+					for (Player player : Bukkit.getOnlinePlayers()) {
+						if (player.hasPermission("rcd.viewauto")) {
+							player.sendMessage(ChatColor.YELLOW + "" + pos + ChatColor.RED + " clocks found by auto scan.");
+						}
+					}
+				}
+				oldClocks.clear();
+				oldClocks.addAll(clocks);
+				clocks.clear();
+				index.clear();
 			}
 			
-		}, 1200, 1200);
+		}, true, 60000);
+		task.start();
 	}
 	
 	@EventHandler
 	public void onRedstoneUpdate(BlockRedstoneEvent e) {
-		index.add(e.getBlock().getLocation());
+		if (e.getNewCurrent() > e.getOldCurrent()) {
+			for (Region region : Main.regions) {
+				if (region.contains(e.getBlock().getLocation())) {
+					return;
+				}
+			}
+			index.add(e.getBlock().getLocation());
+		}
 	}
 	
-	private boolean contained(List<Location> locs, Location loc) {
-		for (Location location : locs) {
-			if (location.distance(loc) < 1) {
+	@EventHandler
+	public void onInventoryTransfer(InventoryMoveItemEvent e) {
+		if (e.getDestination().getHolder() instanceof BlockState && e.getInitiator().getHolder() instanceof BlockState) {
+			for (Region region : Main.regions) {
+				if (region.contains(((BlockState) e.getDestination().getHolder()).getLocation())) {
+					return;
+				}
+			}
+			index.add(((BlockState) e.getDestination().getHolder()).getLocation());
+		}
+	}
+	
+	private boolean containsNear(List<Location> locations, Location loc) {
+		for (Location location : locations) {
+			if (location.distance(loc) < 10) {
 				return true;
 			}
 		}
