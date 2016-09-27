@@ -51,6 +51,11 @@ public class AutoClockFinder implements Listener {
 								continue;
 							}
 						}
+						for (Player player : Bukkit.getOnlinePlayers()) {
+							if (player.getLocation().distance(clock) <= 50) {
+								continue;
+							}
+						}
 						clockList.add(clock);
 						if (!page.add(ChatColor.YELLOW + "" + pos + ": " + ChatColor.GREEN + clock.getBlockX() + ", " + clock.getBlockY() + ", " + clock.getBlockZ() + " in " + clock.getWorld().getName())) {
 							pages.add(page);
