@@ -44,16 +44,17 @@ public class AutoClockFinder implements Listener {
 				int pos = 0;
 				Page page = new Page();
 				pages.clear();
+				clocks:
 				for (Location clock : clocks) {
 					if (oldClocks.contains(clock)) {
 						for (Region region : Main.regions) {
 							if (region.contains(clock)) {
-								continue;
+								continue clocks;
 							}
 						}
 						for (Player player : Bukkit.getOnlinePlayers()) {
-							if (player.getLocation().distance(clock) <= 50) {
-								continue;
+							if (player.getLocation().distance(clock) <= Main.dist) {
+								continue clocks;
 							}
 						}
 						clockList.add(clock);

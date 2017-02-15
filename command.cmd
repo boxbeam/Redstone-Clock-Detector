@@ -1,4 +1,9 @@
 command rcd {
+	dist [int:distance] {
+		run set_dist distance;
+		perm rcd.use;
+		help Set the minimum distance between a player and a clock for it to be ignored
+	}
 	region clear {
 		perm rcd.use;
 		help Clears all regions;

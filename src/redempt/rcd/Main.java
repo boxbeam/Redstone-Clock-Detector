@@ -25,6 +25,7 @@ public class Main extends JavaPlugin implements Listener {
 	public static List<Region> regions = new ArrayList<>();
 	public static Map<Player, ClockFinder> players = new HashMap<>();
 	public static List<Page> regionPages = new ArrayList<>();
+	public static int dist = 50;
 	
 	@Override
 	public void onEnable() {
@@ -49,6 +50,11 @@ public class Main extends JavaPlugin implements Listener {
 	public void regionClear(CommandSender sender) {
 		regions.clear();
 		sender.sendMessage(ChatColor.GREEN + "All regions have been cleared.");
+	}
+	
+	@Command(hook = "set_dist")
+	public void setDistance(CommandSender sender, int distance) {
+		sender.sendMessage(ChatColor.GREEN + "Minimum ignore distance between player and clock set to " + distance + "! (This will be reset when the server restarts)");
 	}
 	
 	@Command(hook = "region_pos1")
@@ -195,7 +201,7 @@ public class Main extends JavaPlugin implements Listener {
 	
 	@Command(hook = "tp_auto")
 	public void tpAuto(CommandSender sender, int num) {
-		if (num < 0 || num > finder.clockList.size()) {
+		if (num < 0 || num > finder.clockList.size() - 1) {
 			if (finder.pages.isEmpty()) {
 				sender.sendMessage(ChatColor.RED + "Invalid entry number! (No existing entries)");
 			} else {
@@ -260,7 +266,7 @@ public class Main extends JavaPlugin implements Listener {
 			sender.sendMessage(ChatColor.RED + "Invalid entry number! (No existing entries)");
 			return;
 		}
-		if (num < 0 || num > finder.locations.size()) {
+		if (num < 0 || num > finder.locations.size() - 1) {
 			if (finder.pages.isEmpty()) {
 				sender.sendMessage(ChatColor.RED + "Invalid entry number! (No existing entries)");
 			} else {
